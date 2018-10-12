@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <iostream>
 
@@ -14,7 +14,7 @@ bool init()
 	bool success = true;
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
-		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 		success = false;
 	}
 	else
@@ -54,6 +54,7 @@ bool loadMedia()
     if(SDL_BlitScaled(originalGreenBoy, NULL, greenBoy, &desiredShape) != 0)
     {
         printf("fuck lmao: %s\n", SDL_GetError());
+        success = false;
     }
 
     SDL_FreeSurface(originalGreenBoy);
@@ -130,8 +131,6 @@ void gameLoop()
             }
         }
 
-        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
-
         playerX += playerXVelocity;
         playerY += playerYVelocity;
 
@@ -145,6 +144,8 @@ void gameLoop()
         endPlacement.y = playerY;
         endPlacement.w = 50;
         endPlacement.h = 50;
+
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
 
         SDL_BlitSurface( greenBoy, NULL, gScreenSurface, &endPlacement );
         SDL_UpdateWindowSurface( gWindow );
