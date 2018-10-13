@@ -15,8 +15,15 @@ public:
 
   Player();
   ~Player();
+
+  void move(double time);
 };
 
 Player::Player() {}
-
 Player::~Player() {}
+
+void Player::move(double time)
+{
+  coordinates.x += velocity.x * time;
+  coordinates.y += velocity.y * time;
+}
