@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <iostream>
+#include <chrono>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -8,6 +9,8 @@ const int SCREEN_HEIGHT = 480;
 SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* greenBoy = SDL_CreateRGBSurface(0, 50, 50, 32, 0, 0, 0, 0);
+
+std::chrono::high_resolution_clock::time_point lastFrameTime;
 
 bool init()
 {
@@ -94,9 +97,10 @@ bool initialize()
 void gameLoop()
 {
     bool playerHasQuit = false;
+    lastFrameTime = std::chrono::high_resolution_clock::now();
 
-    int playerX = 0;
-    int playerY = 0;
+    double playerX = 0;
+    double playerY = 0;
     int playerXVelocity = 0;
     int playerYVelocity = 0;
 
@@ -111,10 +115,10 @@ void gameLoop()
                     playerHasQuit = true;
                     break;
                 case SDL_KEYDOWN:
-                    if (event.key.keysym.scancode == SDL_SCANCODE_W) { playerYVelocity = -1; }
-                    if (event.key.keysym.scancode == SDL_SCANCODE_A) { playerXVelocity = -1; }
-                    if (event.key.keysym.scancode == SDL_SCANCODE_S) { playerYVelocity = 1; }
-                    if (event.key.keysym.scancode == SDL_SCANCODE_D) { playerXVelocity = 1; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_W) { playerYVelocity = -100; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_A) { playerXVelocity = -100; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_S) { playerYVelocity = 100; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_D) { playerXVelocity = 100; }
                     break;
                 case SDL_KEYUP:
                     if (event.key.keysym.scancode == SDL_SCANCODE_W || event.key.keysym.scancode == SDL_SCANCODE_S)
@@ -131,8 +135,14 @@ void gameLoop()
             }
         }
 
-        playerX += playerXVelocity;
-        playerY += playerYVelocity;
+        std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
+        auto timeElapsedSinceLastFrame = currentFrameTime - lastFrameTime;
+        int timeElapsedInMicroseconds = std::chrono::duration_cast<std::chrono::microseconds>(timeElapsedSinceLastFrame).count();
+        double timeElapsedInSeconds = timeElapsedInMicroseconds / (double)1000000;
+        lastFrameTime = currentFrameTime;
+
+        playerX += playerXVelocity * timeElapsedInSeconds;
+        playerY += playerYVelocity * timeElapsedInSeconds;
 
         if (playerX < 0) { playerX = 0; }
         if (playerX > SCREEN_WIDTH - 50) { playerX = SCREEN_WIDTH - 50; }
