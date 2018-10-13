@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
+#include "player.cpp"
+#include "frame_clock.cpp"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -10,42 +12,49 @@ SDL_Window* gWindow = NULL;
 SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* greenBoy = SDL_CreateRGBSurface(0, 50, 50, 32, 0, 0, 0, 0);
 
-std::chrono::high_resolution_clock::time_point lastFrameTime;
-
 bool init()
 {
-	bool success = true;
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
 		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-		success = false;
+        return false;
 	}
-	else
-	{
-		gWindow = SDL_CreateWindow( "RuneScape Six Siege", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-		if( gWindow == NULL )
-		{
-			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-			success = false;
-		}
-		else
-		{
-            SDL_RaiseWindow(gWindow);
-			gScreenSurface = SDL_GetWindowSurface( gWindow );
-            SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
-		}
-	}
-	return success;
+
+    gWindow = SDL_CreateWindow(
+        "RuneScape Six Siege",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        SDL_WINDOW_SHOWN
+    );
+    if( gWindow == NULL )
+    {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+
+    SDL_RaiseWindow(gWindow);
+    gScreenSurface = SDL_GetWindowSurface( gWindow );
+    SDL_FillRect(
+        gScreenSurface,
+        NULL,
+        SDL_MapRGB(gScreenSurface->format, 0, 0, 0)
+    );
+    return true;
 }
 
 bool loadMedia()
 {
-	bool success = true;
-	SDL_Surface* originalGreenBoy = SDL_LoadBMP( "tha_god.bmp" );
+	SDL_Surface* originalGreenBoy = SDL_LoadBMP("tha_god.bmp");
 	if( originalGreenBoy == NULL )
 	{
-		printf( "Unable to load image %s! SDL Error: %s\n", "02_getting_an_image_on_the_screen/hello_world.bmp", SDL_GetError() );
-		success = false;
+		printf(
+            "Unable to load image %s! SDL Error: %s\n",
+            "tha_god.bmp",
+            SDL_GetError()
+        );
+        return false;
 	}
 
     SDL_Rect desiredShape;
@@ -56,20 +65,20 @@ bool loadMedia()
 
     if(SDL_BlitScaled(originalGreenBoy, NULL, greenBoy, &desiredShape) != 0)
     {
-        printf("fuck lmao: %s\n", SDL_GetError());
-        success = false;
+        printf("Unable to scale tha_god.bmp! SDL Error: %s\n", SDL_GetError());
+        return false;
     }
 
     SDL_FreeSurface(originalGreenBoy);
-	return success;
+    return true;
 }
 
 void close()
 {
-	SDL_FreeSurface( greenBoy );
+	SDL_FreeSurface(greenBoy);
 	greenBoy = NULL;
 
-	SDL_DestroyWindow( gWindow );
+	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
 
 	SDL_Quit();
@@ -97,12 +106,8 @@ bool initialize()
 void gameLoop()
 {
     bool playerHasQuit = false;
-    lastFrameTime = std::chrono::high_resolution_clock::now();
-
-    double playerX = 0;
-    double playerY = 0;
-    int playerXVelocity = 0;
-    int playerYVelocity = 0;
+    Player player;
+    FrameClock clock;
 
     while(!playerHasQuit)
     {
@@ -115,19 +120,19 @@ void gameLoop()
                     playerHasQuit = true;
                     break;
                 case SDL_KEYDOWN:
-                    if (event.key.keysym.scancode == SDL_SCANCODE_W) { playerYVelocity = -100; }
-                    if (event.key.keysym.scancode == SDL_SCANCODE_A) { playerXVelocity = -100; }
-                    if (event.key.keysym.scancode == SDL_SCANCODE_S) { playerYVelocity = 100; }
-                    if (event.key.keysym.scancode == SDL_SCANCODE_D) { playerXVelocity = 100; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_W) { player.velocity.y = -200; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_A) { player.velocity.x = -200; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_S) { player.velocity.y = 200; }
+                    if (event.key.keysym.scancode == SDL_SCANCODE_D) { player.velocity.x = 200; }
                     break;
                 case SDL_KEYUP:
                     if (event.key.keysym.scancode == SDL_SCANCODE_W || event.key.keysym.scancode == SDL_SCANCODE_S)
                     {
-                        playerYVelocity = 0;
+                        player.velocity.y = 0;
                     }
                     if (event.key.keysym.scancode == SDL_SCANCODE_A || event.key.keysym.scancode == SDL_SCANCODE_D)
                     {
-                        playerXVelocity = 0;
+                        player.velocity.x = 0;
                     }
                     break;
                 default:
@@ -135,23 +140,18 @@ void gameLoop()
             }
         }
 
-        std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
-        auto timeElapsedSinceLastFrame = currentFrameTime - lastFrameTime;
-        int timeElapsedInMicroseconds = std::chrono::duration_cast<std::chrono::microseconds>(timeElapsedSinceLastFrame).count();
-        double timeElapsedInSeconds = timeElapsedInMicroseconds / (double)1000000;
-        lastFrameTime = currentFrameTime;
+        double timeElapsedInSeconds = clock.measureFrameTimeInSeconds();
+        
+        player.move(timeElapsedInSeconds);
 
-        playerX += playerXVelocity * timeElapsedInSeconds;
-        playerY += playerYVelocity * timeElapsedInSeconds;
-
-        if (playerX < 0) { playerX = 0; }
-        if (playerX > SCREEN_WIDTH - 50) { playerX = SCREEN_WIDTH - 50; }
-        if (playerY < 0) { playerY = 0; }
-        if (playerY > SCREEN_HEIGHT - 50) { playerY = SCREEN_HEIGHT - 50; }
+        if (player.coordinates.x < 0) { player.coordinates.x = 0; }
+        if (player.coordinates.x > SCREEN_WIDTH - 50) { player.coordinates.x = SCREEN_WIDTH - 50; }
+        if (player.coordinates.y < 0) { player.coordinates.y = 0; }
+        if (player.coordinates.y > SCREEN_HEIGHT - 50) { player.coordinates.y = SCREEN_HEIGHT - 50; }
 
         SDL_Rect endPlacement;
-        endPlacement.x = playerX;
-        endPlacement.y = playerY;
+        endPlacement.x = player.coordinates.x;
+        endPlacement.y = player.coordinates.y;
         endPlacement.w = 50;
         endPlacement.h = 50;
 
