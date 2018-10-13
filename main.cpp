@@ -11,7 +11,6 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* greenBoy = SDL_CreateRGBSurface(0, 50, 50, 32, 0, 0, 0, 0);
 
 std::chrono::high_resolution_clock::time_point lastFrameTime;
-double gameLength = 0.00;
 
 bool init()
 {
@@ -142,16 +141,8 @@ void gameLoop()
         double timeElapsedInSeconds = timeElapsedInMicroseconds / (double)1000000;
         lastFrameTime = currentFrameTime;
 
-        gameLength += timeElapsedInSeconds;
-
-        // std::cout << timeElapsedInMicroseconds << std::endl;
-        // std::cout << timeElapsedInSeconds << std::endl;
-        std::cout << gameLength << std::endl;
-
         playerX += playerXVelocity * timeElapsedInSeconds;
         playerY += playerYVelocity * timeElapsedInSeconds;
-
-        // std::cout << playerX << std::endl;
 
         if (playerX < 0) { playerX = 0; }
         if (playerX > SCREEN_WIDTH - 50) { playerX = SCREEN_WIDTH - 50; }
