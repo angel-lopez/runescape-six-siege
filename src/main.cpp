@@ -30,7 +30,7 @@ bool initialize()
 void gameLoop()
 {
     bool playerHasQuit = false;
-    Entity player("tha_god.bmp", 50, 50, 0, 0);
+    Entity player("../assets/tha_god.bmp", 50, 50, 0, 0);
     FrameClock clock;
 
     while(!playerHasQuit)
