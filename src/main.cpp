@@ -30,7 +30,20 @@ bool initialize()
 void gameLoop()
 {
     bool playerHasQuit = false;
-    Entity player("../assets/tha_god.bmp", 50, 50, 0, 0);
+
+    SDL_Surface* testImage = SDL_LoadBMP("../assets/tha_god.bmp");
+    if(testImage == NULL)
+	{
+		printf(
+            "Unable to load image %s! SDL Error: %s\n",
+            "tha_god.bmp",
+            SDL_GetError()
+        );
+        throw;
+	}
+
+    Entity player(testImage, 50, 50, 0, 0);
+    Entity platform(testImage, 400, 50, 120, 300);
     FrameClock clock;
 
     while(!playerHasQuit)
@@ -86,6 +99,7 @@ void gameLoop()
         }
         
         view.render(&player);
+        view.render(&platform);
         view.draw();
     }
 }

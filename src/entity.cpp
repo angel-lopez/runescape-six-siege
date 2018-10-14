@@ -11,29 +11,23 @@ public:
   struct { int x = 0; int y = 0; } velocity;
   struct { int width = 0; int height = 0; } dimensions;
   SDL_Surface* visual;
-  Entity(std::string imagePath, int startingWidth, int startingHeight, int startingX, int startingY);
+  Entity(SDL_Surface* entityAsset, int startingWidth, int startingHeight, int startingX, int startingY);
   ~Entity();
   void move(double time);
   void setXVelocity(int velocity);
   void setYVelocity(int velocity);
 };
 
-Entity::Entity(std::string imagePath, int startingWidth, int startingHeight, int startingX, int startingY)
+Entity::Entity(SDL_Surface* entityAsset, int startingWidth, int startingHeight, int startingX, int startingY)
 {
-  SDL_Surface* entityAsset = SDL_LoadBMP(imagePath.c_str());
-	if(entityAsset == NULL)
-	{
-		printf(
-      "Unable to load image %s! SDL Error: %s\n",
-      "tha_god.bmp",
-      SDL_GetError()
-    );
-    throw;
-	}
+  dimensions.width = startingWidth;
+  dimensions.height = startingHeight;
+  coordinates.x = startingX;
+  coordinates.y = startingY;
 
   SDL_Rect desiredShape;
-  desiredShape.x = startingX;
-  desiredShape.y = startingY;
+  desiredShape.x = 0;
+  desiredShape.y = 0;
   desiredShape.w = startingWidth;
   desiredShape.h = startingHeight;
 
@@ -43,8 +37,6 @@ Entity::Entity(std::string imagePath, int startingWidth, int startingHeight, int
       printf("Unable to scale tha_god.bmp! SDL Error: %s\n", SDL_GetError());
       throw;
   }
-
-  SDL_FreeSurface(entityAsset);
 }
 
 Entity::~Entity() {
