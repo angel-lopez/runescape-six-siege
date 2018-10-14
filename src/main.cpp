@@ -5,10 +5,20 @@
 #include "frame_clock.cpp"
 #include "entity.cpp"
 
+#include "rectangle.cpp"
+#include "collision_logic.cpp"
+
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 View view;
+
+bool entitiesAreColliding(Entity* entityA, Entity* entityB)
+{
+    Rectangle rectangleA(entityA);
+    Rectangle rectangleB(entityB);
+    return rectanglesAreColliding(&rectangleA, &rectangleB);
+}
 
 void close()
 {
@@ -96,6 +106,15 @@ void gameLoop()
         
         if (player.coordinates.y > SCREEN_HEIGHT - 50) {
             player.coordinates.y = SCREEN_HEIGHT - 50;
+        }
+
+        if (entitiesAreColliding(&player, &platform))
+        {
+            printf("Colliding\n");
+        }
+        else
+        {
+            printf("Not colliding\n");
         }
         
         view.render(&player);
