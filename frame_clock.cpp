@@ -1,5 +1,8 @@
 #include <chrono>
 
+#if !defined(FRAME_CLOCK)
+#define FRAME_CLOCK
+
 using namespace std::chrono;
 
 class FrameClock
@@ -17,18 +20,15 @@ public:
   double measureFrameTimeInSeconds();
 };
 
-// constructor
 FrameClock::FrameClock()
 {
   lastFrameTime = measureCurrentTime();
 }
 
-// destructor
 FrameClock::~FrameClock()
 {
 }
 
-// private
 high_resolution_clock::time_point FrameClock::measureCurrentTime()
 {
   currentTime = std::chrono::high_resolution_clock::now();
@@ -50,10 +50,12 @@ double FrameClock::getElapsedFrameTimeInSeconds()
   return getElapsedFrameTimeInMicroSeconds() / (double)1000000;
 }
 
-// public
 double FrameClock::measureFrameTimeInSeconds()
 {
   double frameTimeInSeconds = getElapsedFrameTimeInSeconds();
   lastFrameTime = currentTime;
   return frameTimeInSeconds;
 }
+
+
+#endif // FRAME_CLOCK
